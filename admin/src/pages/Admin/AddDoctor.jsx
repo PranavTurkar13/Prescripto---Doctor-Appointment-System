@@ -1,9 +1,65 @@
-import React from 'react'
+import React, { useContext, useState } from 'react'
 import { assets } from '../../assets/assets'
+import { toast } from 'react-toastify'
+import { AdminContext } from '../../context/AdminContext'
+import axios from 'axios'
 
 const AddDoctor = () => {
+
+  const [docImg, setDocImg] = useState(false)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [experience, setExperience] = useState('1 Year')
+  const [speciality, setSpeciality] = useState('General Physician')
+  const [fees, setFees] = useState('')
+  const [degree, setDegree] = useState('')
+  const [address1, setAddress1] = useState('')
+  const [address2, setAddress2] = useState('')
+  const [about, setAbout] = useState('')
+
+  const { atoken,backendurl } = useContext(AdminContext)
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    if(!docImg){
+      toast.error("Add Doctor Picture")
+      return
+    }
+    try {
+      const formdata = new FormData()
+      formdata.append("name",name)
+      formdata.append("email",email)
+      formdata.append("password",password)
+      formdata.append("experience",experience)
+      formdata.append("speciality",speciality)
+      formdata.append("fees",Number(fees))
+      formdata.append("address",JSON.stringify({line1:address1,line2:address2}))
+      formdata.append("degree",degree)
+      formdata.append("image",docImg)
+      formdata.append("about",about)
+
+      const {data} = await axios.post(backendurl + '/api/admin/add-doctor',formdata,{headers : {atoken}})
+      if(data.success){
+        toast.success(data.message)
+        setDocImg(false)
+        setName('')
+        setEmail('')
+        setPassword('')
+        setFees('')
+        setDegree('')
+        setAddress1('')
+        setAddress2('')
+        setAbout('')
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
   return (
-    <form action="">
+    <form onSubmit={onSubmitHandler} action="">
       <div className="m-5 max-w-full">
 
       <p className="text-xl font-semibold text-gray-800 mb-6">Add Doctor</p>
@@ -15,12 +71,12 @@ const AddDoctor = () => {
           <div className="flex-shrink-0">
             <label htmlFor="doc-img" className="cursor-pointer block">
               <img
-                src={assets.upload_area}
+                src={docImg ? URL.createObjectURL(docImg) :assets.upload_area}
                 alt=""
                 className="w-20 h-20 rounded-2xl object-cover border-2 border-dashed border-indigo-200 hover:border-indigo-400 transition-colors bg-indigo-50"
               />
             </label>
-            <input type="file" id="doc-img" hidden />
+            <input type="file" onChange={(e)=>{console.log(e.target.files[0]),setDocImg(e.target.files[0])}} id="doc-img" hidden />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700">Upload doctor picture</p>
@@ -33,22 +89,22 @@ const AddDoctor = () => {
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Doctor name</p>
-            <input type="text" placeholder='Name' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setName(e.target.value)}} value = {name} type="text" placeholder='Name' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Doctor Email</p>
-            <input type="email" placeholder='Email' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setEmail(e.target.value)}} value = {email} type="email" placeholder='Email' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Doctor Password</p>
-            <input type="password" placeholder='Password' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setPassword(e.target.value)}} value = {password} type="password" placeholder='Password' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Experience</p>
-            <select className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition">
+            <select onChange={(e)=>{setExperience(e.target.value)}} value = {experience} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition">
               <option value="1 Year">1 Year</option>
               <option value="2 Year">2 Year</option>
               <option value="3 Year">3 Year</option>
@@ -64,7 +120,7 @@ const AddDoctor = () => {
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Speciality</p>
-            <select className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition">
+            <select onChange={(e)=>{setSpeciality(e.target.value)}} value={speciality} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition">
               <option value="General physician">General physician</option>
               <option value="Gynecologist">Gynecologist</option>
               <option value="Dermatologist">Dermatologist</option>
@@ -76,23 +132,23 @@ const AddDoctor = () => {
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Education</p>
-            <input type="text" placeholder='Education' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setDegree(e.target.value)}} value = {degree} type="text" placeholder='Education' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Address</p>
-            <input type="text" placeholder='line 1' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition mb-2" />
-            <input type="text" placeholder='line 2' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setAddress1(e.target.value)}} value = {address1} type="text" placeholder='line 1' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition mb-2" />
+            <input onChange={(e)=>{setAddress2(e.target.value)}} value = {address2} type="text" placeholder='line 2' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fees</p>
-            <input type="text" placeholder='Fees' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
+            <input onChange={(e)=>{setFees(e.target.value)}} value = {fees} type="text" placeholder='Fees' required className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition" />
           </div>
 
           <div className="flex flex-col gap-1 sm:col-span-2">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">About me</p>
-            <textarea rows={4} placeholder="Write About Yourself" className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition resize-none" />
+            <textarea onChange={(e)=>{setAbout(e.target.value)}} value={about} rows={4} placeholder="Write About Yourself" className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition resize-none" />
           </div>
 
         </div>

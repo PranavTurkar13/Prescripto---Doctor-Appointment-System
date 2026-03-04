@@ -70,4 +70,14 @@ const loginAdmin = async(req,res)=>{
     }
 }
 
-export {addDoctor,loginAdmin}
+const allDoctors = async(req,res)=>{
+    const doctors = await doctorModel.find({}).select('-password') 
+    try {
+        res.json({success:true,doctors})
+    } catch (error) {
+        console.log(error)
+        res.json({success:false,message:error.message})
+    }
+}
+
+export {addDoctor,loginAdmin,allDoctors}
