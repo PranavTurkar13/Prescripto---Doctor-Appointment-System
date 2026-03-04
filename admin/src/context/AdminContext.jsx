@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 export const AdminContext = createContext()
 
 const AdminContextProvider = (props) =>{
-    const [atoken, setAtoken] = useState(localStorage.getItem("aToken")?localStorage.getItem("aToken"):'')
+    const [atoken, setAtoken] = useState(localStorage.getItem("atoken")?localStorage.getItem("atoken"):'')
     const backendurl = import.meta.env.VITE_BACKEND_URL
     const [doctors, setDoctors] = useState([])
     const getAllDoctors = async() =>{
@@ -22,8 +22,21 @@ const AdminContextProvider = (props) =>{
             toast.error(error.message)
         }
     }
+    const changeAvailability = async(docId) =>{
+        try {
+            const {data} = await axios.post(backendurl + '/api/admin/change-availability',{docId},{headers:{atoken}})
+            if(data.success){
+                getAllDoctors()
+                toast.success(data.message)
+            }else{
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
     const value = {
-        atoken,setAtoken,backendurl,doctors,getAllDoctors
+        atoken,setAtoken,backendurl,doctors,getAllDoctors,changeAvailability
     }
     return(
         <AdminContext.Provider value={value}>

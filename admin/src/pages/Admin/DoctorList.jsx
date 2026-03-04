@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { AdminContext } from "../../context/AdminContext";
 
 const DoctorList = () => {
-  const { atoken, doctors, getAllDoctors } = useContext(AdminContext);
+  const { atoken, doctors, getAllDoctors,changeAvailability } = useContext(AdminContext);
 
   useEffect(() => {
     if (atoken) {
@@ -54,6 +54,7 @@ const DoctorList = () => {
 
               <input
                 type="checkbox"
+                onClick={()=>{changeAvailability(item._id)}}
                 defaultChecked={item.available}
                 className="cursor-pointer accent-indigo-600"
               />
