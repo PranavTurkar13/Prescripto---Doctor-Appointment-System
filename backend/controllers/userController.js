@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt'
 import userModel from '../models/userModel.js'
 import jwt from 'jsonwebtoken'
 import {v2 as cloudinary} from 'cloudinary'
+import doctorModel from '../models/doctorModel.js'
+import appointmentModel from '../models/appointmentModel.js'
 
 const registerData = async (req,res) =>{
     try{
@@ -101,4 +103,52 @@ const updateProfile = async(req,res) =>{
     }
 }
 
-export {registerData,loginUser,getProfile,updateProfile}
+//API to Book Appointment for Doctor
+const bookAppointment = async(req,res) =>{
+    try {
+        const {userId,docId,slotDate,slotTime} = req.body
+        
+        const docData = await doctorModel.findById(docId).select('-password')
+        if(!docData){
+            return res.json({success:false,message:"Doctor not Available"})
+        }
+
+        let slots_booked = docData.slots_booked
+
+        if(slots_booked[slotDate]){
+            if(slots_booked[slotDate].includes(slotTime)){
+                return res.json({success:false,message:"Slot not Available"})
+            }else{
+                slots_booked[slotDate].put(slotTime)
+            }
+        }else{
+            slots_booked[slotDate] = []
+            slots_booked[slotDate].put(slotTime)
+        }
+        
+        const userData = await new userModel.findById(userId).select('-password')
+        delete docData.slots_booked
+
+        const appointmentData = {
+            userId,
+            docId,
+            slotDate,
+            slotTime,
+            userData,
+            docData,
+            amount : docData.fees,
+            date:Date.now()
+        }
+        const newAppointment = new appointmentModel(appointmentData)
+        await appointmentModel.save()
+
+        //update
+        await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+        res.json({success:true,message:"Appointment Booked"})
+    } catch (error) {
+        console.log(error)
+        res.json({success:false,message:error.message})
+    }
+}
+
+export {registerData,loginUser,getProfile,updateProfile,bookAppointment}
